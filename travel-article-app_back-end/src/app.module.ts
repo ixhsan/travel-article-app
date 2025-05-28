@@ -1,19 +1,20 @@
 import { Module } from '@nestjs/common';
 // import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
+import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { ArticleModule } from './modules/article/article.module';
+import { CommentModule } from './modules/comment/comment.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    UserModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -30,6 +31,9 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
       }),
     }),
     AuthModule,
+    UserModule,
+    ArticleModule,
+    CommentModule,
   ],
   // controllers: [AppController],
   providers: [
