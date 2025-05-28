@@ -1,12 +1,23 @@
-import "./App.css";
-import { RootLayout } from "./components/layout/root-layout";
+import { Route, Routes } from "react-router";
+import { LoginPage } from "@/pages/login";
+import { ProtectedRoute } from "@/components/auth/protected-route";
+import { RootLayout } from "@/components/layout/root-layout";
+import HelloTest from "./pages/test-page";
 
-function App() {
+export function App() {
   return (
-    <>
-      <RootLayout />
-    </>
+    <Routes>
+      <Route element={<RootLayout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/articles"
+          element={
+            <ProtectedRoute>
+              <HelloTest />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+    </Routes>
   );
 }
-
-export default App;
