@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router";
+import { HomePage } from "@/pages/home";
 import { ArticlesPage } from "@/pages/articles";
 import { ArticleDetailPage } from "@/pages/article-detail";
 import { LoginPage } from "@/pages/login";
@@ -10,6 +11,7 @@ export function App() {
   return (
     <Routes>
       <Route element={<RootLayout />}>
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route
