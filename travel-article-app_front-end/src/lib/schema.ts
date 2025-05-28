@@ -17,5 +17,13 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
-export type RegisterInput = z.infer<typeof registerSchema>;
+export const articleSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  content: z.string().min(50, "Content must be at least 50 characters"),
+  imageUrl: z.string().url("Invalid image URL"),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type ArticleInput = z.infer<typeof articleSchema>;
