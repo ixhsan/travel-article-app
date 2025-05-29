@@ -10,37 +10,61 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/lib/store";
-import { registerSchema } from "@/lib/schema";
+import { loginSchema } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import type { z } from "zod";
+import { useLogin } from "@/services/auth/auth.service";
+import type { LoginRequestDto } from "@/services/auth/auth.dto";
+import { isAxiosError } from "axios";
+import { setToken } from "@/services/base-api";
 
-type FormData = z.infer<typeof registerSchema>;
+type FormData = z.infer<typeof loginSchema>;
 
-export function RegisterPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
-  const { register: registerUser } = useAuthStore();
+  const store = useAuthStore();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<FormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(loginSchema),
   });
+
+  const login = useLogin();
 
   const onSubmit = async (data: FormData) => {
     try {
-      const success = await registerUser(data.name, data.email, data.password);
-      if (success) {
-        navigate("/articles");
-      } else {
-        setError("email", {
-          message: "Email already exists",
+      const payload = {
+        email: data.email,
+        password: data.password,
+      } satisfies LoginRequestDto["data"];
+
+      const response = await login.mutateAsync({ data: payload });
+
+      if (!response.success) throw response;
+
+      setToken(response.data.access_token);
+
+      await store.login({
+        id: response.data.id,
+        name: response.data.name,
+      });
+
+      navigate("/articles");
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        setError("root", {
+          message:
+            error.response?.data?.message ||
+            "An error occurred. Please try again.",
         });
+        return;
       }
-    } catch (error) {
+
       setError("root", {
         message: "An error occurred. Please try again.",
       });
@@ -51,22 +75,13 @@ export function RegisterPage() {
     <div className="flex h-screen w-screen flex-col items-center justify-center">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your information to create an account
+            Enter your email and password to access your account
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4 mb-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" placeholder="John Doe" {...register("name")} />
-              {errors.name && (
-                <p className="text-sm text-destructive">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -90,34 +105,21 @@ export function RegisterPage() {
                 </p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                {...register("confirmPassword")}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
             {errors.root && (
               <p className="text-sm text-destructive">{errors.root.message}</p>
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating account..." : "Create account"}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
+              Don't have an account?{" "}
               <Link
-                to="/login"
+                to="/register"
                 className="text-primary underline-offset-4 hover:underline"
               >
-                Login
+                Register
               </Link>
             </p>
           </CardFooter>

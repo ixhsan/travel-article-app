@@ -9,35 +9,35 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuthStore } from "@/lib/store";
-import { loginSchema } from "@/lib/schema";
+import { registerSchema } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import type { z } from "zod";
+import { useRegister } from "@/services/auth/auth.service";
 
-type FormData = z.infer<typeof loginSchema>;
+type FormData = z.infer<typeof registerSchema>;
 
-export function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<FormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(registerSchema),
   });
+  const registerUser = useRegister();
 
   const onSubmit = async (data: FormData) => {
     try {
-      const success = await login(data.email, data.password);
+      const success = await registerUser.mutateAsync({ data: data });
       if (success) {
         navigate("/articles");
       } else {
-        setError("root", {
-          message: "Invalid email or password",
+        setError("email", {
+          message: "Email already exists",
         });
       }
     } catch (error) {
@@ -51,13 +51,22 @@ export function LoginPage() {
     <div className="flex h-screen w-screen flex-col items-center justify-center">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>
-            Enter your email and password to access your account
+            Enter your information to create an account
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4 mb-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" placeholder="John Doe" {...register("name")} />
+              {errors.name && (
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -87,15 +96,15 @@ export function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign in"}
+              {isSubmitting ? "Creating account..." : "Create account"}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <Link
-                to="/register"
+                to="/login"
                 className="text-primary underline-offset-4 hover:underline"
               >
-                Register
+                Login
               </Link>
             </p>
           </CardFooter>

@@ -10,12 +10,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useArticleStore } from "@/lib/store";
 import { articleSchema } from "@/lib/schema";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
+import {
+  useCreateArticle,
+  useUpdateArticle,
+} from "@/services/article/article.service";
 
 type FormData = z.infer<typeof articleSchema>;
 
@@ -37,7 +40,8 @@ export function ArticleDialog({
   article,
 }: ArticleDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addArticle, updateArticle } = useArticleStore();
+  const addArticle = useCreateArticle();
+  const updateArticle = useUpdateArticle();
   const isEditing = !!article?.id;
 
   const {
@@ -47,27 +51,43 @@ export function ArticleDialog({
     reset,
   } = useForm<FormData>({
     resolver: zodResolver(articleSchema),
-    defaultValues: article || {
+    defaultValues: {
       title: "",
       description: "",
       content: "",
       imageUrl: "",
     },
+    values: article,
   });
 
   const onSubmit = async (data: FormData) => {
     try {
       setIsSubmitting(true);
       if (isEditing && article?.id) {
-        await updateArticle(article.id, data);
+        await updateArticle
+          .mutateAsync({
+            data: {
+              ...data,
+            },
+            params: {
+              id: article.id,
+            },
+          })
+          .then(() => {
+            reset();
+          });
       } else {
-        await addArticle({
-          ...data,
-          image: data.imageUrl,
-        });
+        await addArticle
+          .mutateAsync({
+            data: {
+              ...data,
+            },
+          })
+          .then(() => {
+            reset();
+          });
       }
       onOpenChange(false);
-      reset();
     } catch (error) {
       console.error("Failed to save article:", error);
     } finally {

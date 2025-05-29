@@ -25,7 +25,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/about"
+                  to="#"
                   className="text-muted-foreground hover:text-primary"
                 >
                   About Us
@@ -33,7 +33,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  to="#"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Contact
@@ -46,7 +46,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  to="/privacy"
+                  to="#"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Privacy Policy
@@ -54,7 +54,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/terms"
+                  to="#"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Terms of Service
@@ -90,7 +90,7 @@ export function Footer() {
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
           <p>
-            &copy; {new Date().getFullYear()} TravelBlog. All rights reserved.
+            &copy; {new Date().getFullYear()} DataCakra Assesment 
           </p>
         </div>
       </div>

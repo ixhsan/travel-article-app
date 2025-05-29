@@ -1,19 +1,9 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
 import { ArticleDialog } from "@/components/article/article-dialog";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
-import { useArticleStore } from "@/lib/store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,22 +14,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  useGetAllArticle,
+  useRemoveArticle,
+} from "@/services/article/article.service";
+import type { Article } from "@/types/article.type";
+import ArticleGrid from "@/components/article/article-grid";
 
-export function ArticlesPage() {
+export default function ArticlesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<any>(null);
-  const { articles, isLoading, deleteArticle } = useArticleStore();
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+
   const itemsPerPage = 6;
 
-  const filteredArticles = articles.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.author.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getAllArticle = useGetAllArticle();
+  const removeArticle = useRemoveArticle();
+
+  const filteredArticles =
+    getAllArticle.data?.data.filter(
+      (article) =>
+        article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.author.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) ?? ([] as Article[]);
 
   const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -51,20 +51,25 @@ export function ArticlesPage() {
     pageNumbers.push(i);
   }
 
-  const handleEdit = (article: any) => {
+  const handleEdit = (article: Article) => {
     setSelectedArticle(article);
     setDialogOpen(true);
   };
 
   const handleDelete = async () => {
     if (selectedArticle) {
-      await deleteArticle(selectedArticle.id);
+      await removeArticle.mutateAsync({
+        params: {
+          id: selectedArticle.id,
+        },
+      });
+
       setDeleteDialogOpen(false);
       setSelectedArticle(null);
     }
   };
 
-  const confirmDelete = (article: any) => {
+  const confirmDelete = (article: Article) => {
     setSelectedArticle(article);
     setDeleteDialogOpen(true);
   };
@@ -85,7 +90,7 @@ export function ArticlesPage() {
             />
           </div>
           <Button
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
             onClick={() => {
               setSelectedArticle(null);
               setDialogOpen(true);
@@ -96,56 +101,17 @@ export function ArticlesPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {isLoading
-            ? Array.from({ length: itemsPerPage }).map((_, index) => (
-                <ArticleSkeleton key={index} />
-              ))
-            : currentArticles.map((article) => (
-                <Card key={article.id} className="overflow-hidden">
-                  <Link to={`/articles/${article.id}`}>
-                    <img
-                      src={article.imageUrl}
-                      alt={article.title}
-                      className="h-48 w-full object-cover transition-transform hover:scale-105"
-                      loading="lazy"
-                    />
-                  </Link>
-                  <CardHeader>
-                    <Link to={`/articles/${article.id}`}>
-                      <CardTitle className="line-clamp-2 hover:text-primary">
-                        {article.title}
-                      </CardTitle>
-                    </Link>
-                    <CardDescription className="flex items-center gap-2 text-sm">
-                      By {article.author} •{" "}
-                      {new Date(article.date).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
-                      {article.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center gap-2"
-                      onClick={() => handleEdit(article)}
-                    >
-                      <Edit className="h-4 w-4" /> Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center gap-2 text-destructive"
-                      onClick={() => confirmDelete(article)}
-                    >
-                      <Trash2 className="h-4 w-4" /> Delete
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+          {getAllArticle.isLoading ? (
+            Array.from({ length: itemsPerPage }).map((_, index) => (
+              <ArticleSkeleton key={index} />
+            ))
+          ) : (
+            <ArticleGrid
+              articles={currentArticles}
+              onDelete={(d) => confirmDelete(d)}
+              onEdit={(d) => handleEdit(d)}
+            />
+          )}
         </div>
 
         {totalPages > 1 && (
@@ -191,7 +157,7 @@ export function ArticlesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
               article and remove it from our servers.
@@ -201,7 +167,7 @@ export function ArticlesPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
             >
               Delete
             </AlertDialogAction>

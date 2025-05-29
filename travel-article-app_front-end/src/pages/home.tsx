@@ -9,7 +9,7 @@ import {
 import { Globe2, MessageSquare, Smartphone } from "lucide-react";
 import { Link } from "react-router";
 
-export function HomePage() {
+export default function HomePage() {
   const features = [
     {
       icon: <Globe2 className="h-8 w-8 text-primary" />,

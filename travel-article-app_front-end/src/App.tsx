@@ -1,11 +1,13 @@
 import { Route, Routes } from "react-router";
-import { HomePage } from "@/pages/home";
-import { ArticlesPage } from "@/pages/articles";
-import { ArticleDetailPage } from "@/pages/article-detail";
-import { LoginPage } from "@/pages/login";
-import { RegisterPage } from "@/pages/register";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { RootLayout } from "@/components/layout/root-layout";
+import React from "react";
+
+const HomePage = React.lazy(() => import("./pages/home"));
+const LoginPage = React.lazy(() => import("./pages/auth/login"));
+const RegisterPage = React.lazy(() => import("./pages/auth/register"));
+const ArticlesPage = React.lazy(() => import("./pages/articles/articles"));
+const ArticleDetailPage = React.lazy(() => import("./pages/articles/article-detail"));
 
 export function App() {
   return (
