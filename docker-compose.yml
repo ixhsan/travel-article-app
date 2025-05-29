@@ -1,0 +1,54 @@
+services:
+  backend:
+    build:
+      context: ./travel-article-app_back-end
+    container_name: travel-backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=asSemogaKabarBaiksdha-7192A&(&#@)@#
+      - DB_TYPE=postgres
+      - DB_HOSTNAME=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=travel_article_app_db
+    volumes:
+      - ./travel-article-app_back-end:/app
+    command: sh -c "npm run migration:run && npm run start:prod"
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: ./travel-article-app_front-end
+    container_name: travel-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      - VITE_BASE_API_URL=http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./travel-article-app_front-end:/app
+      - /app/node_modules     
+    command: npm run dev -- --host
+
+  postgres:
+    image: postgres:15
+    container_name: nest-travel-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: travel_article_app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
