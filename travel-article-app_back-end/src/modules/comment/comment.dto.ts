@@ -1,6 +1,8 @@
 // create-comment.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional } from 'class-validator';
+import { Article } from '../article/entities/article.entity';
+import { Exclude } from 'class-transformer';
 
 export class CreateCommentRequestDto {
   @ApiProperty({ example: 'Artikelnya bagus...' })
@@ -11,6 +13,9 @@ export class CreateCommentRequestDto {
 export class CreateCommentResponseDto {
   id: number;
   content: string;
+  
+  @Exclude()
+  article: Article;
 }
 
 export class UpdateCommentRequestDto {

@@ -8,20 +8,22 @@ import {
   Post,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
-import { UserDecorator } from 'src/shared/decorators/user.decorator';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   CreateCommentRequestDto,
   UpdateCommentRequestDto,
 } from './comment.dto';
 import { User } from '../user/entities/user.entity';
+import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Comments')
-@Controller('comment')
+@Controller('comments')
 export class CommentController {
   constructor(private readonly service: CommentService) {}
 
+  @SuccessMessage('Comment added')
   @Post(':articleId')
   async create(
     @Param('articleId') articleId: number,
@@ -32,11 +34,12 @@ export class CommentController {
     return result;
   }
 
-  @Get()
+  @Get(':articleId')
   findAll(@Param('articleId') articleId: number) {
     return this.service.findAll(articleId);
   }
 
+  @SuccessMessage('Comment updated')
   @Patch(':id')
   update(
     @Param('id') id: number,

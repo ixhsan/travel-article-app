@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Exclude } from 'class-transformer';
 import { Article } from 'src/modules/article/entities/article.entity';
 import { Comment } from 'src/modules/comment/entities/comment.entity';
+import { ArticleLike } from 'src/modules/article/entities/article-like.entity';
 
 @Entity()
 export class User {
@@ -11,7 +11,6 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Exclude()
   @Column()
   password: string;
 
@@ -23,4 +22,7 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.author)
   comments: Comment[];
+
+  @OneToMany(() => ArticleLike, (like) => like.user)
+  articleLikes: ArticleLike[];
 }

@@ -2,7 +2,8 @@ import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
 import { LoginRequestDto, RegisterRequestDto } from './auth.dto';
-import { Public } from 'src/shared/decorators/public.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
+import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -10,12 +11,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @SuccessMessage('Register Success')
   @Post('register')
   async register(@Body() registerDto: RegisterRequestDto) {
     return this.authService.register(registerDto);
   }
 
   @Public()
+  @SuccessMessage('Login Success')
   @Post('login')
   async login(@Body() dto: LoginRequestDto) {
     const user = await this.authService.validateUser(dto);

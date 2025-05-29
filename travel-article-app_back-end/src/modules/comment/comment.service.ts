@@ -50,6 +50,7 @@ export class CommentService {
           name: true,
         },
       },
+      order: { createdAt: 'DESC' },
     });
   }
 

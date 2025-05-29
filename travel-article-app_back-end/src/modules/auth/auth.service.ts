@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from 'src/modules/user/user.service';
@@ -28,13 +28,16 @@ export class AuthService {
   login(user: Omit<User, 'password'>): LoginResponseDto {
     const payload = { sub: user.id, email: user.email };
 
-    return {
-      name: user.name,
+    return toDto(LoginResponseDto, {
+      ...user,
       access_token: this.jwtService.sign(payload),
-    };
+    });
   }
 
   async register(dto: RegisterRequestDto) {
+    const exist = await this.userService.findByEmail(dto.email);
+    if (exist) throw new BadRequestException('Email already registered');
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const result = await this.userService.create({
       ...dto,
