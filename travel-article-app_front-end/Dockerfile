@@ -1,12 +1,21 @@
-FROM node:20
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# Install curl for healthcheck
+RUN apk add --no-cache curl
 
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source files
 COPY . .
 
+# Expose port
 EXPOSE 5173
 
-CMD ["npm", "run", "dev"]
+# Default command (will be overridden by docker-compose)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

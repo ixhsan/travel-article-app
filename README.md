@@ -34,15 +34,15 @@ travel-article-app/
 - React Hook Form with Zod validation
 - React Router for navigation
 
-## Running the Project (via Local / Docker)
+## Running the Project (via Docker)
 
 1. Clone the repository
-2. if you want to run it on host locally, then create a `.env` file in the root directory, example already provided
-3. if you wan to run this via docker, then make sure Docker and Docker Compose are installed, and run these commands in order:
+3. Make sure Docker and Docker Compose are installed, and run this command in the root folder:
+
 ```bash
-docker-compose build --no-cache
-docker-compose up
+npm run docker:start
 ```
+
 4. The application will be available at:
 
 - Frontend: http://localhost:5173

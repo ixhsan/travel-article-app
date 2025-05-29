@@ -1,0 +1,10 @@
+{
+  "name": "travel-article-app",
+  "version": "1.0.0",
+  "description": "A full-stack application for managing and sharing travel articles, built with modern web technologies.",
+  "scripts": {
+    "docker:start": "cd travel-article-app_back-end && npm install && npm run build && cd ../travel-article-app_front-end && npm install && cd .. && docker compose up",
+    "docker:drop": "docker compose down --volumes",
+    "docker:stop": "docker compose down"
+  }
+}
