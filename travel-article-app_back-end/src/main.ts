@@ -2,9 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { ResponseTransformInterceptor } from './common/interceptors/response.interceptor';
+import { GlobalTransformInterceptor } from './common/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,9 +16,11 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new ResponseTransformInterceptor());
-  app.useGlobalInterceptors(new TransformInterceptor());
+  const globalTransformInterceptor = app.get(GlobalTransformInterceptor);
+
+  app.useGlobalInterceptors(globalTransformInterceptor);
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.enableCors();
 
   const config = new DocumentBuilder()
     .setTitle('Travel Article API')
@@ -35,7 +36,10 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000, '0.0.0.0');
+
+  const url = await app.getUrl();
+  console.log(`🚀 Server running at: ${url} in ${process.env.NODE_ENV} mode`);
 }
 
 bootstrap();

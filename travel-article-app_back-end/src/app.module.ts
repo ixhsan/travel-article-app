@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { ArticleModule } from './modules/article/article.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { GlobalTransformInterceptor } from './common/interceptors/response.interceptor';
 
 @Module({
   imports: [
@@ -35,13 +36,14 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     ArticleModule,
     CommentModule,
   ],
-  // controllers: [AppController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    GlobalTransformInterceptor,
   ],
 })
 export class AppModule {}
