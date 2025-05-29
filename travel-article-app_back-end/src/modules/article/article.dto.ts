@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNotEmpty } from 'class-validator';
 
 export class CreateArticleRequestDto {
@@ -19,16 +20,22 @@ export class CreateArticleRequestDto {
   content: string;
 }
 
+class AuthorDto {
+  id: number;
+  name: string;
+}
+
 export class CreateArticleResponseDto {
   id: number;
   title: string;
   description: string;
   imageUrl: string;
   content: string;
-  author: {
-    id: number;
-    name: string;
-  };
+  likesCount: number;
+  isLiked: boolean;
+
+  @Type(() => AuthorDto)
+  author: AuthorDto;
 }
 
 export class UpdateArticleRequestDto {
@@ -55,8 +62,14 @@ export class UpdateArticleResponseDto {
   description: string;
   imageUrl: string;
   content: string;
-  author: {
-    id: number;
-    name: string;
-  };
+  likesCount: number;
+  isLiked: boolean;
+
+  @Type(() => AuthorDto)
+  author: AuthorDto;
+}
+
+export class LikeArticleResponseDto {
+  likesCount: number;
+  isLiked: boolean;
 }

@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
+import { ArticleLike } from './article-like.entity';
 
 @Entity()
 export class Article extends BaseEntity {
@@ -26,9 +27,15 @@ export class Article extends BaseEntity {
   @Column('text')
   content: string;
 
+  @Column({ default: 0 })
+  likesCount: number;
+
   @ManyToOne(() => User, (user) => user.articles)
   author: User;
 
   @OneToMany(() => Comment, (comment) => comment.article)
   comments: Comment[];
+
+  @OneToMany(() => ArticleLike, (like) => like.article)
+  likes: ArticleLike[];
 }

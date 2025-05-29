@@ -13,9 +13,10 @@ import {
   CreateArticleRequestDto,
   UpdateArticleRequestDto,
 } from './article.dto';
-import { UserDecorator } from 'src/shared/decorators/user.decorator';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { User } from '../user/entities/user.entity';
+import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Articles')
@@ -24,21 +25,22 @@ export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Get()
-  findAll() {
-    return this.articleService.findAll();
+  findAll(@UserDecorator() user?: User) {
+    return this.articleService.findAll(user);
   }
 
+  @SuccessMessage('Article created successfully')
   @Post()
   create(@Body() dto: CreateArticleRequestDto, @UserDecorator() user: User) {
-    console.log({ dto, user });
     return this.articleService.create(dto, user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.articleService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @UserDecorator() user?: User) {
+    return this.articleService.findOne(id, user);
   }
 
+  @SuccessMessage('Article updated')
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -48,8 +50,17 @@ export class ArticleController {
     return this.articleService.update(id, dto, user);
   }
 
+  @SuccessMessage('Article removed')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number, @UserDecorator() user: User) {
     return this.articleService.remove(id, user);
+  }
+
+  @Post(':id/like')
+  toggleLike(
+    @Param('id', ParseIntPipe) id: number,
+    @UserDecorator() user: User,
+  ) {
+    return this.articleService.toggleLike(id, user);
   }
 }

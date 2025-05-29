@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Article } from 'src/modules/article/entities/article.entity';
@@ -7,25 +11,29 @@ import {
   CreateArticleResponseDto,
   UpdateArticleRequestDto,
   UpdateArticleResponseDto,
+  LikeArticleResponseDto,
 } from './article.dto';
 import { toDto } from 'src/shared/utils/to-dto.utils';
 import { User } from '../user/entities/user.entity';
+import { ArticleLike } from './entities/article-like.entity';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
+    @InjectRepository(ArticleLike)
+    private articleLikeRepository: Repository<ArticleLike>,
   ) {}
 
   async create(dto: CreateArticleRequestDto, user: User) {
     const article = this.articleRepository.create({ ...dto, author: user });
     const result = await this.articleRepository.save(article);
-    return toDto(CreateArticleResponseDto, result);
+    return toDto(CreateArticleResponseDto, { ...result, isLiked: false });
   }
 
-  async findAll() {
-    const result = await this.articleRepository.find({
+  async findAll(user?: User) {
+    const articles = await this.articleRepository.find({
       relations: ['author'],
       select: {
         author: {
@@ -33,13 +41,27 @@ export class ArticleService {
           name: true,
         },
       },
+      order: { createdAt: 'DESC' },
     });
 
-    return result;
-  }
+    // Get all liked article
+    let likedArticleIds: number[] = [];
+    if (user) {
+      const likes = await this.articleLikeRepository.find({
+        where: { userId: user.id },
+        select: ['articleId'],
+      });
+      likedArticleIds = likes.map((like) => like.articleId);
+    }
 
-  findOne(id: number) {
-    return this.articleRepository.findOne({
+    // fill isLiked
+    return articles.map((article) => ({
+      ...article,
+      isLiked: likedArticleIds.includes(article.id),
+    }));
+  }
+  async findOne(id: number, user?: User) {
+    const article = await this.articleRepository.findOne({
       where: { id },
       relations: ['author'],
       select: {
@@ -49,19 +71,84 @@ export class ArticleService {
         },
       },
     });
+
+    if (!article) return null;
+
+    let isLiked = false;
+    if (user) {
+      const like = await this.articleLikeRepository.findOne({
+        where: {
+          userId: user.id,
+          articleId: id,
+        },
+      });
+      isLiked = !!like;
+    }
+
+    return {
+      ...article,
+      isLiked,
+    };
   }
 
   async update(id: number, dto: UpdateArticleRequestDto, user: User) {
-    const article = await this.findOne(id);
-    if (article?.author.id !== user.id) throw new ForbiddenException();
+    const article = await this.articleRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
+    if (!article) throw new NotFoundException();
+    if (article.author.id !== user.id) throw new ForbiddenException();
+
     Object.assign(article, dto);
-    const result = this.articleRepository.save(article);
-    return toDto(UpdateArticleResponseDto, result);
+    const result = await this.articleRepository.save(article);
+
+    return toDto(UpdateArticleResponseDto, {
+      ...result,
+      isLiked: false,
+    });
   }
 
   async remove(id: number, user: User) {
-    const article = await this.findOne(id);
-    if (article?.author.id !== user.id) throw new ForbiddenException();
+    const article = await this.articleRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
+    if (!article) throw new NotFoundException();
+
+    if (article.author.id !== user.id) throw new ForbiddenException();
+
     return this.articleRepository.remove(article);
+  }
+
+  async toggleLike(id: number, user: User): Promise<LikeArticleResponseDto> {
+    const article = await this.articleRepository.findOneBy({ id });
+    if (!article) throw new NotFoundException('Article not found');
+
+    const existingLike = await this.articleLikeRepository.findOneBy({
+      userId: user.id,
+      articleId: article.id,
+    });
+
+    let isLiked: boolean;
+
+    if (existingLike) {
+      await this.articleLikeRepository.delete(existingLike.id);
+      article.likesCount = Math.max(0, article.likesCount - 1);
+      isLiked = false;
+    } else {
+      await this.articleLikeRepository.save({
+        userId: user.id,
+        articleId: article.id,
+      });
+      article.likesCount++;
+      isLiked = true;
+    }
+
+    await this.articleRepository.save(article);
+
+    return {
+      likesCount: article.likesCount,
+      isLiked,
+    };
   }
 }
