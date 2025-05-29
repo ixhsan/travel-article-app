@@ -14,7 +14,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let status =
+    const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
@@ -24,9 +24,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    // Kalau error class-validator biasanya message berupa object, convert ke string
-    if (typeof message === 'object' && (message as any).message) {
-      message = (message as any).message;
+    if (exception instanceof HttpException) {
+      const response = exception.getResponse();
+      message =
+        typeof response === 'string' ? response : (response as any).message;
+    } else if (exception instanceof Error) {
+      message = exception.message;
     }
 
     response.status(status).json({
