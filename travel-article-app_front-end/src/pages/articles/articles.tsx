@@ -20,6 +20,7 @@ import {
 } from "@/services/article/article.service";
 import type { Article } from "@/types/article.type";
 import ArticleGrid from "@/components/article/article-grid";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 
 export default function ArticlesPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,11 +29,13 @@ export default function ArticlesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const debouncedSearch = useDebounce(searchTerm, 700);
 
   const getAllArticle = useGetAllArticle({
     params: {
       page: currentPage,
       limit: pageSize,
+      search: debouncedSearch,
     },
   });
   const removeArticle = useRemoveArticle();
