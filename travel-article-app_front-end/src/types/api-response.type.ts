@@ -10,6 +10,14 @@ export interface PaginationParams {
   search?: string;
 }
 
+export interface PaginatedData<T> {
+  data: T;
+  current_page: number;
+  total_page: number;
+  page_size: number;
+  total: number | null;
+}
+
 export type ApiRequest<Payload = undefined, Params = undefined> = [
   Payload
 ] extends [undefined]

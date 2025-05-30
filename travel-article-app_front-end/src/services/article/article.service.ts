@@ -3,6 +3,7 @@ import { baseApi } from "../base-api";
 import type {
   CreateArticleRequestDto,
   CreateArticleResponseDto,
+  GetAllArticleRequestDto,
   GetAllArticleResponseDto,
   GetOneArticleRequestDto,
   GetOneArticleResponseDto,
@@ -18,7 +19,7 @@ import { QUERY_KEYS } from "@/constants/query-key.constant";
 import { createSuccessHandler } from "@/lib/utils";
 
 interface ArticleService {
-  getAll: () => Promise<GetAllArticleResponseDto>;
+  getAll: (req: GetAllArticleRequestDto) => Promise<GetAllArticleResponseDto>;
   getOne: (req: GetOneArticleRequestDto) => Promise<GetOneArticleResponseDto>;
   create: (req: CreateArticleRequestDto) => Promise<CreateArticleResponseDto>;
   update: (req: UpdateArticleRequestDto) => Promise<UpdateArticleResponseDto>;
@@ -27,8 +28,16 @@ interface ArticleService {
 }
 
 const articleService: ArticleService = {
-  getAll: async function () {
-    const response = await baseApi.get(PROTECTED_API.article.getAll_get);
+  getAll: async function ({ params }) {
+    const urlParams = new URLSearchParams({
+      page: params.page.toString(),
+      limit: params.limit.toString(),
+      search: params.search ?? "",
+    }).toString();
+
+    const response = await baseApi.get(
+      PROTECTED_API.article.getAll_get + "?" + urlParams
+    );
     return response.data;
   },
   getOne: async function (req) {
@@ -74,10 +83,10 @@ const articleService: ArticleService = {
   },
 };
 
-export const useGetAllArticle = () =>
+export const useGetAllArticle = (req: GetAllArticleRequestDto) =>
   useQuery({
-    queryFn: articleService.getAll,
-    queryKey: QUERY_KEYS.ARTICLE.GET_ALL(),
+    queryFn: () => articleService.getAll(req),
+    queryKey: QUERY_KEYS.ARTICLE.GET_ALL(req.params),
   });
 
 export const useGetOneArticle = (req: GetOneArticleRequestDto) =>

@@ -15,8 +15,9 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import type { z } from "zod";
 import { useRegister } from "@/services/auth/auth.service";
+import { isAxiosError } from "axios";
 
-type FormData = z.infer<typeof registerSchema>;
+type registerSchema = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -25,24 +26,26 @@ export default function RegisterPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-  } = useForm<FormData>({
+  } = useForm<registerSchema>({
     resolver: zodResolver(registerSchema),
   });
   const registerUser = useRegister();
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: registerSchema) => {
     try {
-      const success = await registerUser.mutateAsync({ data: data });
-      if (success) {
-        navigate("/articles");
-      } else {
-        setError("email", {
-          message: "Email already exists",
+      const response = await registerUser.mutateAsync({ data: data });
+      if (!response.success) throw response;
+
+      navigate("/articles");
+    } catch (error) {
+      if (isAxiosError(error)) {
+        setError("root", {
+          message: error.response?.data.message,
         });
       }
-    } catch (error) {
+
       setError("root", {
-        message: "An error occurred. Please try again.",
+        message: error.message || "Error occured",
       });
     }
   };

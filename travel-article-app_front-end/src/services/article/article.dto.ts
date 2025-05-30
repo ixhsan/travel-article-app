@@ -1,9 +1,14 @@
-import type { ApiRequest, BaseResponse } from "@/types/api-response.type";
+import type {
+  ApiRequest,
+  BaseResponse,
+  PaginatedData,
+  PaginationParams,
+} from "@/types/api-response.type";
 import type { Article } from "@/types/article.type";
 
-// export type GetAllArticleRequestDto = ApiRequest<undefined, undefined>;
+export type GetAllArticleRequestDto = ApiRequest<undefined, PaginationParams>;
 
-export type GetAllArticleResponseDto = BaseResponse<Article[]>;
+export type GetAllArticleResponseDto = BaseResponse<PaginatedData<Article[]>>;
 
 export type GetOneArticleRequestDto = ApiRequest<undefined, { id: number }>;
 

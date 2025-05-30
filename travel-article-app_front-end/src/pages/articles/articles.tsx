@@ -23,28 +23,22 @@ import ArticleGrid from "@/components/article/article-grid";
 
 export default function ArticlesPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
-  const itemsPerPage = 6;
-
-  const getAllArticle = useGetAllArticle();
+  const getAllArticle = useGetAllArticle({
+    params: {
+      page: currentPage,
+      limit: pageSize,
+    },
+  });
   const removeArticle = useRemoveArticle();
 
-  const filteredArticles =
-    getAllArticle.data?.data.filter(
-      (article) =>
-        article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.author.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) ?? ([] as Article[]);
-
-  const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentArticles = filteredArticles.slice(startIndex, endIndex);
+  const articles = getAllArticle.data?.data.data ?? ([] as Article[]);
+  const totalPages = getAllArticle.data?.data.total_page ?? 0;
 
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
@@ -102,12 +96,12 @@ export default function ArticlesPage() {
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {getAllArticle.isLoading ? (
-            Array.from({ length: itemsPerPage }).map((_, index) => (
+            Array.from({ length: pageSize }).map((_, index) => (
               <ArticleSkeleton key={index} />
             ))
           ) : (
             <ArticleGrid
-              articles={currentArticles}
+              articles={articles}
               onDelete={(d) => confirmDelete(d)}
               onEdit={(d) => handleEdit(d)}
             />
