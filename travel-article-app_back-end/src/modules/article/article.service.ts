@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Article } from 'src/modules/article/entities/article.entity';
 import {
   CreateArticleRequestDto,
@@ -34,8 +34,12 @@ export class ArticleService {
   }
 
   async findAll(pagination: PaginationParams, user?: User) {
-    const { limit, page } = pagination;
+    const { limit, page, search } = pagination;
+
+    const whereCondition = search ? { title: ILike(`%${search}%`) } : {};
+
     const [articles, total] = await this.articleRepository.findAndCount({
+      where: whereCondition,
       relations: ['author'],
       select: {
         author: {
