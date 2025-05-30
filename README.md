@@ -1,5 +1,6 @@
 # Travel Article Application
 
+![Preview](./assets/preview-1.jpeg)
 A full-stack application for managing and sharing travel articles, built with modern web technologies.
 
 ## Project Structure
