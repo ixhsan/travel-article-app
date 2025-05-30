@@ -40,7 +40,7 @@ travel-article-app/
 3. Make sure Docker and Docker Compose are installed, and run this command in the root folder:
 
 ```bash
-npm run docker:start
+npm run docker:init
 ```
 
 4. The application will be available at:
