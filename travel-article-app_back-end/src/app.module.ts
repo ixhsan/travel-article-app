@@ -4,11 +4,9 @@ import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
 import { ArticleModule } from './modules/article/article.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { GlobalTransformInterceptor } from './common/interceptors/response.interceptor';
 
 @Module({
@@ -37,13 +35,6 @@ import { GlobalTransformInterceptor } from './common/interceptors/response.inter
     CommentModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    GlobalTransformInterceptor,
-  ],
+  providers: [AppService, GlobalTransformInterceptor],
 })
 export class AppModule {}

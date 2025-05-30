@@ -16,6 +16,7 @@ import {
 import { toDto } from 'src/shared/utils/to-dto.utils';
 import { User } from '../user/entities/user.entity';
 import { ArticleLike } from './entities/article-like.entity';
+import { PaginationParams } from 'src/shared/dto/pagination.dto';
 
 @Injectable()
 export class ArticleService {
@@ -32,8 +33,9 @@ export class ArticleService {
     return toDto(CreateArticleResponseDto, { ...result, isLiked: false });
   }
 
-  async findAll(user?: User) {
-    const articles = await this.articleRepository.find({
+  async findAll(pagination: PaginationParams, user?: User) {
+    const { limit, page } = pagination;
+    const [articles, total] = await this.articleRepository.findAndCount({
       relations: ['author'],
       select: {
         author: {
@@ -42,6 +44,8 @@ export class ArticleService {
         },
       },
       order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     // Get all liked article
@@ -55,11 +59,18 @@ export class ArticleService {
     }
 
     // fill isLiked
-    return articles.map((article) => ({
-      ...article,
-      isLiked: likedArticleIds.includes(article.id),
-    }));
+    return {
+      data: articles.map((article) => ({
+        ...article,
+        isLiked: likedArticleIds.includes(article.id),
+      })),
+      current_page: page,
+      total_page: Math.ceil(total / limit),
+      page_size: limit,
+      total,
+    };
   }
+
   async findOne(id: number, user?: User) {
     const article = await this.articleRepository.findOne({
       where: { id },
